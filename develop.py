@@ -22,11 +22,16 @@ def adding(URI, dictionary, depth):
 # The tree of links appends here
 tree_of_hyperlinks = dict()
 
+print('Enter the URI:', end=' ')
 # Root URI that we want to conduct analysis on it
 the_root_URI_input = input()
+
+print('Enter the depth:', end=' ')
 # Get the depth of analysing
 depth = int(input())
 
 tree_of_hyperlinks[the_root_URI_input] = dict()
 
 adding(the_root_URI_input, tree_of_hyperlinks[the_root_URI_input], depth)
+
+print(tree_of_hyperlinks)
