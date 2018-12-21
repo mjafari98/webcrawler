@@ -30,5 +30,3 @@ depth = int(input())
 tree_of_hyperlinks[the_root_URI_input] = dict()
 
 adding(the_root_URI_input, tree_of_hyperlinks[the_root_URI_input], depth)
-
-print(tree_of_hyperlinks)
