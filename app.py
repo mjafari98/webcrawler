@@ -14,3 +14,10 @@ root_URI = requests.get(the_root_URI_input)
 
 # Render HTML_DOC from string to beautifulsoup
 soup = bs(root_URI.text, 'html.parser')
+
+# Query on beautifulsoup to pull out hyperlinks
+for link in soup.find_all('a'):
+    if str(link.get('href'))[0] != '/' and link.get('href') != None:
+        tree_of_hyperlinks[str(link.get('href'))] = dict()
+
+print(tree_of_hyperlinks)
