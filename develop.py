@@ -15,7 +15,7 @@ def adding(URI, dictionary, depth):
             and link.get('href') != None \
             and str(link.get('href')) not in dictionary:
                 dictionary[str(link.get('href'))] = dict()
-                if depth > 0:
+                if depth > 1:
                     adding(str(link.get('href')), dictionary[str(link.get('href'))], depth-1)
 
 
