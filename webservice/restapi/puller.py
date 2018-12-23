@@ -4,11 +4,12 @@ import requests
 import re
 
 def pull_out(the_root_URI_input_i, depth_i):
+
+    # Filtered Hosts that we don't want analyse them
     ignoring_hosts = ['youtube',
                       'telegram',
                       'facebook',
-                      'twitter',
-                      ]
+                      'twitter',]
 
     def adding(URI, dictionary, depth):
         try:
