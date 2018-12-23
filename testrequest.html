@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <script src="http://www.tahlildadeh.com/Jquery/jquery-1.9.1.min.js"></script>
+</head>
+<body>
+    <script type="text/javascript">
+        $(function () {
+            $.post("http://192.168.59.127:8000/link-list/",
+            // $.post("http://localhost:8000/link-list/",
+            {
+                "uri": "http://quera.ir",
+                "depth": 1
+            },
+            function (data, textStatus) {
+                console.log(data);
+            });
+        });
+    </script>
+</body>
+</html>
