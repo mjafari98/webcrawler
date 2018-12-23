@@ -1,4 +1,4 @@
-from bs4 import BeautifulSoup as bs
+# from bs4 import BeautifulSoup as bs
 import json
 import requests
 import re
@@ -11,6 +11,9 @@ def pull_out(the_root_URI_input_i, depth_i):
                       'facebook',
                       'twitter',]
 
+    def relative_to_absolute(BASE_URI, links):
+
+
     def adding(URI, dictionary, depth):
         try:
             if depth > 0:
@@ -21,13 +24,21 @@ def pull_out(the_root_URI_input_i, depth_i):
                     root_URI = requests.get(URI)
 
                     # Render HTML_DOC from string to beautifulsoup
-                    soup = bs(root_URI.text, 'html.parser')
+                    # soup = bs(root_URI.text, 'html.parser')
 
                     # Query on beautifulsoup to pull out hyperlinks
-                    for link in soup.find_all('a', attrs={'href': re.compile("^http[s]*://")}):
-                        dictionary[str(link.get('href'))] = dict()
+                    # for link in soup.find_all('a', attrs={'href': re.compile("^http[s]*://")}):
+                    #     dictionary[str(link.get('href'))] = dict()
+                    #     if depth > 1:
+                    #         adding(str(link.get('href')), dictionary[str(link.get('href'))], depth-1)
+
+                    resp = re.findall(r'(href|src|url)=\"([^\"]*)\"', root_URI.text)
+                    relative_to_absolute(URI, resp)
+                    for link in resp:
+                        dictionary[link] = dict()
                         if depth > 1:
-                            adding(str(link.get('href')), dictionary[str(link.get('href'))], depth-1)
+                            adding(link, dictionary[link], depth-1)
+
 
         except Exception as e:
             print(e)

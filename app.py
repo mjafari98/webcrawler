@@ -6,29 +6,85 @@ import re
 ignoring_hosts = ['youtube',
                   'telegram',
                   'facebook',
-                  'twitter',
-                  ]
+                  'twitter',]
+
+ignoring_formats = ['.css',
+                    '.js',
+                    '.jpg',
+                    '.png',
+                    '.svg',
+                    '.ico',]
+
+domain_list = ['.ir',
+               '.com',
+               '.org',
+               '.net',]
+
+def relative_to_absolute(BASE_URI, links):
+    deleting_list = list()
+    for i in range(0, len(links)):
+        if links[i] == None:
+            deleting_list.append(links[i])
+            pass
+
+        elif len(links[i]) < 1:
+            deleting_list.append(links[i])
+            pass
+
+        elif links[i][:4] == 'http':
+            pass
+
+        elif any(domain in links[i] for domain in domain_list):
+            pass
+
+        elif links[i][0] == '/':
+            a = links[i]
+            if BASE_URI[-1] != '/':
+                links[i] = BASE_URI + a
+            elif BASE_URI[-1] == '/':
+                links[i] = BASE_URI[:-1] + a
+
+        else:
+            a = links[i]
+            if BASE_URI[-1] != '/':
+                links[i] = BASE_URI + '/' + a
+            elif BASE_URI[-1] == '/':
+                links[i] = BASE_URI + a
+
+    for x in deleting_list:
+        links.remove(x)
+
+
 
 def adding(URI, dictionary, depth):
-    try:
-        if depth > 0:
-            if any(host in URI for host in ignoring_hosts):
-                pass
-            else:
-                # Send GET request to take the HTML DOC from the URI
-                root_URI = requests.get(URI)
+    # try:
+    if depth > 0:
+        if any(host in URI for host in ignoring_hosts) or \
+           any(format in URI for format in ignoring_formats):
+            pass
 
+        else:
+            # Send GET request to take the HTML DOC from the URI
+            root_URI = requests.get(URI)
+
+            if root_URI.status_code == 200:
                 # Render HTML_DOC from string to beautifulsoup
-                soup = bs(root_URI.text, 'html.parser')
+                # soup = bs(root_URI.text, 'html.parser')
 
-                # Query on beautifulsoup to pull out hyperlinks
-                for link in soup.find_all('a', attrs={'href': re.compile("^http[s]*://")}):
-                    dictionary[str(link.get('href'))] = dict()
+                resp = list()
+                resp.extend(re.findall(r'href=\"([^\"]*)\"', root_URI.text))
+                # resp.extend(re.findall(r'url=\"([^\"]*)\"', root_URI.text))
+                # resp.extend(re.findall(r'src=\"([^\"]*)\"', root_URI.text))
+                relative_to_absolute(URI, resp)
+
+                for link in resp:
+                    dictionary[link] = dict()
+                    # print(dictionary)
                     if depth > 1:
-                        adding(str(link.get('href')), dictionary[str(link.get('href'))], depth-1)
+                        adding(link, dictionary[link], depth-1)
 
-    except Exception as e:
-        print(e)
+    # except Exception as e:
+    #     print()
 
 
 # The tree of links appends here

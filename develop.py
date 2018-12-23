@@ -17,11 +17,19 @@ def adding(URI, dictionary, depth):
 
             # Query on beautifulsoup to pull out hyperlinks
             # for link in soup.findAll('a', attrs={'href': re.compile("^http[s]*://")}):
-            for link in soup.findAll('a'):
-                #print(str(link.get('href')))
-                dictionary[str(link.get('href'))] = dict()
+            # for link in soup.findAll('a'):
+            #     #print(str(link.get('href')))
+            #     dictionary[str(link.get('href'))] = dict()
+            #     if depth > 1:
+            #         adding(str(link.get('href')), dictionary[str(link.get('href'))], depth-1)
+
+
+            resp = re.findall(r'(href|src|url)=\"([^\"]*)\"', root_URI.text)
+            relative_to_absolute(URI, resp)
+            for link in resp:
+                dictionary[link] = dict()
                 if depth > 1:
-                    adding(str(link.get('href')), dictionary[str(link.get('href'))], depth-1)
+                    adding(link, dictionary[link], depth-1)
 
     except Exception as e:
         pass
