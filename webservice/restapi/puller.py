@@ -1,47 +1,109 @@
-# from bs4 import BeautifulSoup as bs
 import json
 import requests
-import re
+import regex
 
 def pull_out(the_root_URI_input_i, depth_i):
 
     # Filtered Hosts that we don't want analyse them
+
     ignoring_hosts = ['youtube',
                       'telegram',
                       'facebook',
                       'twitter',]
 
+    ignoring_formats = ['.css',
+                        '.js',
+                        '.jpg',
+                        '.png',
+                        '.svg',
+                        '.ico',]
+
+    domain_list = ['.ir',
+                   '.com',
+                   '.org',
+                   '.net',]
+
+    ignoring_notation = [':', '{', '#', '@']
+
+
     def relative_to_absolute(BASE_URI, links):
+
+        # find the base domain
+        BASE_URI = regex.search(r'''(https?://[^/]*/*)''', BASE_URI).group(0)
+
+        deleting_list = list()
+        for i in range(0, len(links)):
+
+            # append to delete list if the link is None(null)
+            if links[i] == None:
+                deleting_list.append(links[i])
+
+            # append to delete list if length of the link is 0
+            elif len(links[i]) < 1:
+                deleting_list.append(links[i])
+
+            elif any(notation in links[i] for notation in ignoring_notation):
+                deleting_list.append(links[i])
+
+            # if it's a url without hostname add the hostname to it
+            elif not any(domain in links[i] for domain in domain_list) \
+            and links[i][:4] != 'http':
+                a = links[i]
+                if BASE_URI[-1] != '/':
+                    links[i] = BASE_URI + '/' + a
+                elif BASE_URI[-1] == '/':
+                    links[i] = BASE_URI + a
+
+            # if a URI doesn't start with http it will be removed
+            if links[i][:4] != 'http':
+                deleting_list.append(links[i])
+
+        return [e for e in links if e not in deleting_list]
 
 
     def adding(URI, dictionary, depth):
-        try:
-            if depth > 0:
-                if any(host in URI for host in ignoring_hosts):
-                    pass
-                else:
-                    # Send GET request to take the HTML DOC from the URI
+        if depth > 0:
+            if any(host in URI for host in ignoring_hosts) or \
+               any(format in URI for format in ignoring_formats):
+                pass
+
+            else:
+                # Send GET request to take the HTML DOC from the URI
+                try:
                     root_URI = requests.get(URI)
+                    root_URI.encoding = 'utf-8'
 
-                    # Render HTML_DOC from string to beautifulsoup
-                    # soup = bs(root_URI.text, 'html.parser')
+                    if root_URI.status_code == 200:
+                        resp = list()
 
-                    # Query on beautifulsoup to pull out hyperlinks
-                    # for link in soup.find_all('a', attrs={'href': re.compile("^http[s]*://")}):
-                    #     dictionary[str(link.get('href'))] = dict()
-                    #     if depth > 1:
-                    #         adding(str(link.get('href')), dictionary[str(link.get('href'))], depth-1)
+                        # Regex to get href attributes
+                        regexp_href_link = r'''href=\"(http[s]?://[^\"]*)\"'''
+                        regexp_href_url  = r'''href=\"/*([^\"]*)\"'''
+                        resp.extend(regex.findall(regexp_href_link, root_URI.text))
+                        resp.extend(regex.findall(regexp_href_url, root_URI.text))
 
-                    resp = re.findall(r'(href|src|url)=\"([^\"]*)\"', root_URI.text)
-                    relative_to_absolute(URI, resp)
-                    for link in resp:
-                        dictionary[link] = dict()
-                        if depth > 1:
-                            adding(link, dictionary[link], depth-1)
+                        # Regex to get src attributes
+                        # regexp_src_link = r'''src=\"(https?://[^\"]*)\"'''
+                        # regexp_src_url  = r'''src=\"/*([^\"]*)\"'''
+                        # resp.extend(regex.findall(regexp_src_link, root_URI.text))
+                        # resp.extend(regex.findall(regexp_src_url, root_URI.text))
 
+                        # Regex to get url attributes
+                        # regexp_url_link = r'''url=\"(https?://[^\"]*)\"'''
+                        # regexp_url_url  = r'''url=\"/*([^\"]*)\"'''
+                        # resp.extend(regex.findall(regexp_url_link, root_URI.text))
+                        # resp.extend(regex.findall(regexp_url_url, root_URI.text))
 
-        except Exception as e:
-            print(e)
+                        resp = relative_to_absolute(URI, resp)
+
+                        for link in resp:
+                            dictionary[link] = dict()
+                            # print(dictionary)
+                            if depth > 1:
+                                adding(link, dictionary[link], depth-1)
+
+                except Exception as e:
+                    pass
 
 
     # The tree of links appends here
@@ -59,6 +121,6 @@ def pull_out(the_root_URI_input_i, depth_i):
     # web scraping starts here!
     adding(the_root_URI_input, tree_of_hyperlinks[the_root_URI_input], depth)
 
-    j = json.dumps(tree_of_hyperlinks, indent=4)
-    j2 = json.loads(j)
-    return j2
+    # j = json.dumps(tree_of_hyperlinks, indent=4)
+    # j2 = json.loads(j)
+    return tree_of_hyperlinks
