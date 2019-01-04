@@ -22,9 +22,17 @@ def rec(directory, current_path=''):
             current_path = current_path[:current_path.rfind('>')]
             current_path = current_path.replace('>', '/')
             current_path = current_path.replace('/\\', '/')
-            print(directory[direc])
-
-            os.makedirs(current_path)
+            # print(directory[direc])
+            try:
+                os.makedirs(current_path)
+            except Exception as e:
+                pass
 
             filename = current_path + '/' + directory[direc].replace('/', '\\')
-            urllib.request.urlretrieve(directory[direc], filename)
+            try:
+                urllib.request.urlretrieve(directory[direc], filename)
+            except Exception as e:
+                with open(filename, 'w+') as f:
+                    f.write('This Website has restricted to download data')
+
+                print('This Website has restricted to download data')
